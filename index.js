@@ -1,6 +1,26 @@
 const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
-
 const qrcode = require('qrcode-terminal');
+const fs = require('fs');
+const crypto = require('crypto');
+
+const DB_FILE = './users_db.json';
+
+function loadDatabase() {
+    if (!fs.existsSync(DB_FILE)) {
+        fs.writeFileSync(DB_FILE, JSON.stringify({ users: {}, sessions: {} }, null, 2));
+    }
+    return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+}
+
+function saveDatabase(db) {
+    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+}
+
+function hashPassword(password) {
+    return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+let db = loadDatabase();
 
 const client = new Client({
     authStrategy: new LocalAuth(),
@@ -51,9 +71,77 @@ function caesarCipher(text, shift, isDecipher) {
 
 client.on('message', async (message) => {
     const chat = await message.getChat();
+    const sender = message.from;
+    const parts = message.body.split(" ");
+    const command = parts[0].toLowerCase();
+
+    // 1. Registration command
+    if (command === "!register") {
+        if (parts.length < 2) {
+            return await message.reply("Usage: !register PASSWORD");
+        }
+        if (db.users[sender]) {
+            return await message.reply("You are already registered! Please use !login PASSWORD.");
+        }
+
+        const password = parts[1];
+        db.users[sender] = {
+            passwordHash: hashPassword(password),
+            registeredAt: new Date().toISOString()
+        };
+        saveDatabase(db);
+        return await message.reply("Registration successful! You can now use !login PASSWORD to log in.");
+    }
+
+    // 2. Login command
+    if (command === "!login") {
+        if (parts.length < 2) {
+            return await message.reply("Usage: !login PASSWORD");
+        }
+        if (!db.users[sender]) {
+            return await message.reply("You are not registered. Please use !register PASSWORD first.");
+        }
+
+        const password = parts[1];
+        const hashed = hashPassword(password);
+
+        if (db.users[sender].passwordHash === hashed) {
+            db.sessions[sender] = {
+                loggedInAt: new Date().toISOString()
+            };
+            saveDatabase(db);
+            return await message.reply("Login successful! You are now authorized to use my commands.");
+        } else {
+            return await message.reply("Error: Incorrect password.");
+        }
+    }
+
+    // 3. Logout command
+    if (command === "!logout") {
+        if (db.sessions[sender]) {
+            delete db.sessions[sender];
+            saveDatabase(db);
+            return await message.reply("You have been logged out.");
+        } else {
+            return await message.reply("You are not logged in.");
+        }
+    }
+
+    // 4. Require login for all other existing commands
+    if (!db.sessions[sender]) {
+        // We only enforce the block if they attempt to use known commands,
+        // so the bot doesn't spam random chat messages with the security error
+        const knownCommands = ["ping", "que", "!cypher", "!decypher"];
+        if (knownCommands.includes(command)) {
+            return await message.reply("Security Error: You must be logged in to use bot commands. Use !register PASSWORD or !login PASSWORD.");
+        }
+        return;
+    }
+
+    // --- Protected Commands Below ---
 
     if (message.body.toLocaleLowerCase() === "ping") {
-        await message.reply("putos todos");
+        await message.reply("pong");
     } else if (message.body.toLowerCase() === "que") {
         // Use proper formatting or relative path for local images
         const filePath = "./papu.jpg";

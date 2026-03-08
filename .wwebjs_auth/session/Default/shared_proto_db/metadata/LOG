@@ -1,3 +1,2 @@
-2026/03/04-18:24:59.524 7dd8 Reusing MANIFEST C:\Users\Sebas\whatsapp-bot\.wwebjs_auth\session\Default\shared_proto_db\metadata/MANIFEST-000001
-2026/03/04-18:24:59.525 7dd8 Recovering log #3
-2026/03/04-18:24:59.525 7dd8 Reusing old log C:\Users\Sebas\whatsapp-bot\.wwebjs_auth\session\Default\shared_proto_db\metadata/000003.log 
+2026/03/07-19:35:48.117 b7e8 Creating DB C:\Users\Sebas\whatsapp-bot\.wwebjs_auth\session\Default\shared_proto_db\metadata since it was missing.
+2026/03/07-19:35:48.130 b7e8 Reusing MANIFEST C:\Users\Sebas\whatsapp-bot\.wwebjs_auth\session\Default\shared_proto_db\metadata/MANIFEST-000001
