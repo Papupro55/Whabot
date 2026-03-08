@@ -76,12 +76,12 @@ client.on('message', async (message) => {
     const command = parts[0].toLowerCase();
 
     // 1. Registration command
-    if (command === "!register") {
+    if (command === "papuregister") {
         if (parts.length < 2) {
-            return await message.reply("Usage: !register PASSWORD");
+            return await message.reply("Usage: papuregister PASSWORD");
         }
         if (db.users[sender]) {
-            return await message.reply("You are already registered! Please use !login PASSWORD.");
+            return await message.reply("You are already registered! Please use papulogin PASSWORD.");
         }
 
         const password = parts[1];
@@ -90,16 +90,16 @@ client.on('message', async (message) => {
             registeredAt: new Date().toISOString()
         };
         saveDatabase(db);
-        return await message.reply("Registration successful! You can now use !login PASSWORD to log in.");
+        return await message.reply("Registration successful! You can now use papulogin PASSWORD to log in.");
     }
 
     // 2. Login command
-    if (command === "!login") {
+    if (command === "papulogin") {
         if (parts.length < 2) {
-            return await message.reply("Usage: !login PASSWORD");
+            return await message.reply("Usage: papulogin PASSWORD");
         }
         if (!db.users[sender]) {
-            return await message.reply("You are not registered. Please use !register PASSWORD first.");
+            return await message.reply("You are not registered. Please use papuregister PASSWORD first.");
         }
 
         const password = parts[1];
@@ -117,7 +117,7 @@ client.on('message', async (message) => {
     }
 
     // 3. Logout command
-    if (command === "!logout") {
+    if (command === "papulogout") {
         if (db.sessions[sender]) {
             delete db.sessions[sender];
             saveDatabase(db);
